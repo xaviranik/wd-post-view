@@ -3,7 +3,7 @@
 /**
  * Plugin Name:       WeDevs Posts View
  * Plugin URI:        https://zabiranik.me
- * Description:       Tracks post view count.
+ * Description:       Tracks post view count, recent posts shortcode.
  * Version:           1.0.0
  * Requires at least: 5.2
  * Requires PHP:      7.2
@@ -14,7 +14,12 @@
  * Text Domain:       wd-posts-email-notificaition
  */
 
+use WD\Samurai\Frontend_Handler;
+use WD\Samurai\Post_View;
+
 if ( ! defined( 'ABSPATH' ) ) exit;
+
+require_once __DIR__ . '/vendor/autoload.php';
 
 final class WD_Post_View {
 
@@ -65,19 +70,8 @@ final class WD_Post_View {
      */
     public function init_plugin() {
 
-        add_filter( 'the_content', [ $this, 'post_view_count' ], 1 );
-        add_filter( 'modify_count_value', [ $this, 'modify_count_element' ] );
-    }
-
-    /**
-     * Modifies the count element
-     *
-     * @param string $count
-     * @return string
-     */
-    public function modify_count_element( $count ) {
-        
-        return "<em>{$count}</em>";
+        $this->register_page_handler();
+        $this->register_post_view_count();
     }
 
     /**
@@ -88,7 +82,7 @@ final class WD_Post_View {
 
         $installed = get_option('wd_post_view_installed');
 
-        if (!$installed) {
+        if ( ! $installed ) {
             update_option('wd_post_view_installed', time());
         }
 
@@ -96,29 +90,24 @@ final class WD_Post_View {
     }
 
     /**
-     * Tracks the view count of a post
+     * Register handler based on Admin/Frontend
      *
-     * @param string $content
-     * @return string
+     * @return void
      */
-    public function post_view_count( $content ) {
-
-        if ( is_singular() && in_the_loop() && is_main_query() ) {
-            $count_key = 'post_views_count';
-            $count = get_post_meta( get_the_ID(), $count_key, true);
-            if ( $count == '' ) {
-                $count = 0;
-                delete_post_meta( get_the_ID(), $count_key );
-                add_post_meta( get_the_ID(), $count_key, '0' );
-            } else {
-                $count++;
-                update_post_meta( get_the_ID(), $count_key, $count );
-            }
-
-            return $content . '<p>View Count: ' . apply_filters( 'modify_count_value', $count ) . '</p>';
+    public function register_page_handler() {
+        if ( ! is_admin() ) {
+            new Frontend_Handler;
         }
+    }
 
-        return $content;
+    /**
+     * Registers post view count
+     *
+     * @return void
+     */
+    public function register_post_view_count() {
+        $post_view = new Post_View;
+        add_filter( 'the_content', [ $post_view, 'post_view_count' ], 1 );
     }
 }
 

@@ -1,0 +1,14 @@
+{
+    "name": "xavir/wd-post-view",
+    "description": "Post view modifier plugin",
+    "type": "wordpress-plugin",
+    "license": "GPLv2",
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "WD\\Samurai\\": "includes/"
+        },
+        "files": []
+    }
+}
